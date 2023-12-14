@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Suscripción</title>
+    <style>
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Formulario de Suscripción</h1>
+    <form method="post" action="suscribe.php">
+        <fieldset>
+            <legend>Datos personales</legend>
+            <p>
+                <label for="nombre">Nombre: </label>
+                <input type="text" name="nombre" id="nombre" required />
+                <span class="error"></span>
+            </p>
+            <p>
+                <label for="dni">DNI: </label>
+                <input type="text" name="dni" id="dni" pattern="[0-9]{8}-[A-Z]" required placeholder="12345678-A" />
+                <span class="error"></span>
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Tipo de Suscripción</legend>
+            <span class="error"></span>
+            <input type="radio" name="tipo" id="basico" value="basico" checked required />
+            <label for="basico">Básico</label>
+            <input type="radio" name="tipo" id="estandar" value="estandar" required />
+            <label for="estandar">Estándar</label>
+            <input type="radio" name="tipo" id="premium" value="premium" required />
+            <label for="premium">Premium</label>
+            <input type="radio" name="tipo" id="elite" value="elite" required />
+            <label for="elite">Élite</label>
+        </fieldset>
+        <fieldset>
+            <legend>Temas</legend>
+            <span class="error"></span>
+            <input type="checkbox" name="tema[]" id="Cocina" value="Cocina" />
+            <label for="Cocina">Cocina</label>
+            <input type="checkbox" name="tema[]" id="Futbol" value="Futbol" />
+            <label for="Futbol">Futbol</label>
+        </fieldset>
+        <p>
+            <input type="reset" value="Borrar" />
+            <input type="submit" value="Suscribir" />
+        </p>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+            const nombreInput = document.getElementById("nombre");
+            const dniInput = document.getElementById("dni");
+            const tipoRadios = document.querySelectorAll('input[name="tipo"]');
+            const temaCheckboxesContainer = document.getElementById("temas");
+            const errores = document.querySelectorAll(".error");
+
+            form.addEventListener("submit", function (event) {
+                const nombre = nombreInput.value.toUpperCase();
+                nombreInput.value = nombre;
+
+                if (nombre.length < 3) {
+                    mostrarError(0, "El nombre debe tener al menos 3 caracteres.");
+                    event.preventDefault();
+                } else {
+                    ocultarError(0);
+                }
+
+                const dniPattern = /^[0-9]{8}-[A-Z]$/;
+                if (!dniPattern.test(dniInput.value)) {
+                    mostrarError(1, "El DNI debe tener formato válido: 12345678-A");
+                    event.preventDefault();
+                } else {
+                    ocultarError(1);
+                }
+
+                let precio = 0;
+                tipoRadios.forEach((radio) => {
+                    if (radio.checked) {
+                        switch (radio.value) {
+                            case "basico":
+                                precio = 10;
+                                break;
+                            case "estandar":
+                                precio = 15;
+                                break;
+                            case "premium":
+                                precio = 20;
+                                break;
+                            case "elite":
+                                precio = 25;
+                                break;
+                        }
+                    }
+                });
+
+                const temasDisponibles = [
+                    'Cocina', 'Futbol', 'Salud', 'Arte', 'Sucesos', 'Política',
+                    'Economía', 'Música', 'Cine', 'Baloncesto', 'Javascript',
+                    'Vinos', 'Papiroflexia'
+                ];
+
+                temaCheckboxesContainer.innerHTML = "";
+
+                temasDisponibles.forEach((tema) => {
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.name = "tema[]";
+                    checkbox.value = tema;
+                    checkbox.id = tema;
+                    checkbox.required = true;
+
+                    const label = document.createElement("label");
+                    label.htmlFor = tema;
+                    label.textContent = tema;
+
+                    temaCheckboxesContainer.appendChild(checkbox);
+                    temaCheckboxesContainer.appendChild(label);
+                });
+
+                const temasSeleccionados = Array.from(
+                    temaCheckboxesContainer.querySelectorAll('input[name="tema[]"]:checked')
+                );
+
+                const tipoSeleccionado = Array.from(tipoRadios).find(
+                    (radio) => radio.checked
+                ).value;
+
+                switch (tipoSeleccionado) {
+                    case "basico":
+                        validarCantidadTemas(temasSeleccionados, 1, 0, event);
+                        break;
+                    case "estandar":
+                        validarCantidadTemas(temasSeleccionados, 3, 1, event);
+                        break;
+                    case "premium":
+                        validarCantidadTemas(temasSeleccionados, 6, 2, event);
+                        break;
+                    case "elite":
+                        ocultarError(2);
+                        break;
+                }
+
+                document.getElementById("precio").textContent = `$${precio.toFixed(2)}`;
+            });
+
+            function mostrarError(index, mensaje) {
+                errores[index].textContent = mensaje;
+            }
+
+            function ocultarError(index) {
+                errores[index].textContent = "";
+            }
+
+            function validarCantidadTemas(temas, cantidad, indexError, event) {
+                if (temas.length !== cantidad) {
+                    mostrarError(
+                        2,
+                        `Es necesario seleccionar ${cantidad} temas con esta suscripción.`
+                    );
+                    event.preventDefault();
+                } else {
+                    ocultarError(indexError);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
